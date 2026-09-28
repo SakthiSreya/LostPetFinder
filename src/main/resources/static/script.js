@@ -1,36 +1,30 @@
 const API = "http://localhost:8080";
-const USER_ID = 1;
 
+let USER_ID = 1;
 let allReports = [];
 let currentFilter = "all";
 
 document.addEventListener("DOMContentLoaded", function () {
     const lostForm = document.getElementById("lostForm");
     const foundForm = document.getElementById("foundForm");
+    const userForm = document.getElementById("userForm");
 
-    if (lostForm) {
-        lostForm.addEventListener("submit", submitLostPet);
-    }
-
-    if (foundForm) {
-        foundForm.addEventListener("submit", submitFoundAnimal);
-    }
+    if (lostForm) lostForm.addEventListener("submit", submitLostPet);
+    if (foundForm) foundForm.addEventListener("submit", submitFoundAnimal);
+    if (userForm) userForm.addEventListener("submit", submitUser);
 
     loadReports();
+    loadUsers();
 });
+
 
 async function loadReports() {
     try {
         const lostResponse = await fetch(`${API}/lost-pets`);
         const foundResponse = await fetch(`${API}/found-animals`);
 
-        if (!lostResponse.ok) {
-            throw new Error("Failed to load lost pet reports");
-        }
-
-        if (!foundResponse.ok) {
-            throw new Error("Failed to load found animal reports");
-        }
+        if (!lostResponse.ok) throw new Error("Failed to load lost pet reports");
+        if (!foundResponse.ok) throw new Error("Failed to load found animal reports");
 
         const lostReports = await lostResponse.json();
         const foundReports = await foundResponse.json();
@@ -46,21 +40,17 @@ async function loadReports() {
 
     } catch (error) {
         console.error("LOAD ERROR:", error);
-
         const container = document.getElementById("reportsContainer");
-
         if (container) {
             container.innerHTML = `<p class="loading">Unable to load reports.</p>`;
         }
     }
 }
 
+
 function displayReports() {
     const container = document.getElementById("reportsContainer");
-
-    if (!container) {
-        return;
-    }
+    if (!container) return;
 
     let reports = [...allReports];
 
@@ -76,7 +66,6 @@ function displayReports() {
 
     if (localityInput && localityInput.value.trim() !== "") {
         const searchText = localityInput.value.trim().toLowerCase();
-
         reports = reports.filter(report =>
             report.locality &&
             report.locality.toLowerCase().includes(searchText)
@@ -94,30 +83,57 @@ function displayReports() {
 
         return `
             <div class="card ${report.reportType}">
+
                 <p class="eyebrow">${isLost ? "LOST PET" : "FOUND ANIMAL"}</p>
+
                 <h3>${escapeHtml(report.breed)}</h3>
+
                 <p><strong>Species:</strong> ${escapeHtml(report.species)}</p>
                 <p><strong>Color:</strong> ${escapeHtml(report.color)}</p>
                 <p><strong>Locality:</strong> ${escapeHtml(report.locality)}</p>
-                <p><strong>${isLost ? "Last Seen" : "Found Location"}:</strong> ${escapeHtml(location)}</p>
+                <p>
+                    <strong>${isLost ? "Last Seen" : "Found Location"}:</strong>
+                    ${escapeHtml(location)}
+                </p>
                 <p><strong>Status:</strong> ${escapeHtml(report.status)}</p>
 
                 <div class="card-actions">
-                    <button type="button" onclick="viewReport('${report.reportType}', ${report.id})">View</button>
+
+                    <button type="button"
+                        onclick="viewReport('${report.reportType}', ${report.id})">
+                        View
+                    </button>
 
                     ${isLost && report.status === "ACTIVE" ? `
-                        <button type="button" onclick="findMatchesForReport(${report.id})">Matches</button>
+                        <button type="button"
+                            onclick="findMatchesForReport(${report.id})">
+                            Matches
+                        </button>
                     ` : ""}
 
                     ${report.status === "ACTIVE" ? `
-                        <button type="button" onclick="resolveReport('${report.reportType}', ${report.id})">Resolve</button>
-                        <button type="button" onclick="deleteReport('${report.reportType}', ${report.id})">Delete</button>
+                        <button type="button"
+                            onclick="editReport('${report.reportType}', ${report.id})">
+                            Edit
+                        </button>
+
+                        <button type="button"
+                            onclick="resolveReport('${report.reportType}', ${report.id})">
+                            Resolve
+                        </button>
+
+                        <button type="button"
+                            onclick="deleteReport('${report.reportType}', ${report.id})">
+                            Delete
+                        </button>
                     ` : ""}
+
                 </div>
             </div>
         `;
     }).join("");
 }
+
 
 function filterReports(filter, button) {
     currentFilter = filter;
@@ -126,16 +142,16 @@ function filterReports(filter, button) {
         btn.classList.remove("active");
     });
 
-    if (button) {
-        button.classList.add("active");
-    }
+    if (button) button.classList.add("active");
 
     displayReports();
 }
+
 
 function searchReports() {
     displayReports();
 }
+
 
 async function submitLostPet(event) {
     event.preventDefault();
@@ -158,9 +174,7 @@ async function submitLostPet(event) {
 
         const result = await readResponse(response);
 
-        if (!response.ok) {
-            throw new Error(getErrorMessage(result));
-        }
+        if (!response.ok) throw new Error(getErrorMessage(result));
 
         document.getElementById("lostForm").reset();
         document.getElementById("lostMessage").textContent =
@@ -174,6 +188,7 @@ async function submitLostPet(event) {
     }
 }
 
+
 async function submitFoundAnimal(event) {
     event.preventDefault();
 
@@ -186,8 +201,6 @@ async function submitFoundAnimal(event) {
         user: { id: USER_ID }
     };
 
-    console.log("Sending found animal:", data);
-
     try {
         const response = await fetch(`${API}/found-animals`, {
             method: "POST",
@@ -197,11 +210,7 @@ async function submitFoundAnimal(event) {
 
         const result = await readResponse(response);
 
-        console.log("Found animal response:", result);
-
-        if (!response.ok) {
-            throw new Error(getErrorMessage(result));
-        }
+        if (!response.ok) throw new Error(getErrorMessage(result));
 
         document.getElementById("foundForm").reset();
         document.getElementById("foundMessage").textContent =
@@ -215,12 +224,99 @@ async function submitFoundAnimal(event) {
     }
 }
 
+
+async function submitUser(event) {
+    event.preventDefault();
+
+    const data = {
+        name: document.getElementById("userName").value.trim(),
+        email: document.getElementById("userEmail").value.trim(),
+        phone: document.getElementById("userPhone").value.trim()
+    };
+
+    try {
+        const response = await fetch(`${API}/users`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const result = await readResponse(response);
+
+        if (!response.ok) throw new Error(getErrorMessage(result));
+
+        USER_ID = result.id;
+
+        document.getElementById("userForm").reset();
+        document.getElementById("userMessage").textContent =
+            `User created successfully. User ID: ${result.id}`;
+
+        await loadUsers();
+
+    } catch (error) {
+        console.error("USER ERROR:", error);
+        document.getElementById("userMessage").textContent = error.message;
+    }
+}
+
+
+async function loadUsers() {
+    const container = document.getElementById("usersContainer");
+    if (!container) return;
+
+    try {
+        const response = await fetch(`${API}/users`);
+        const users = await readResponse(response);
+
+        if (!response.ok) throw new Error(getErrorMessage(users));
+
+        if (!Array.isArray(users) || users.length === 0) {
+            container.innerHTML = `<p class="loading">No users found.</p>`;
+            return;
+        }
+
+        container.innerHTML = users.map(user => `
+            <div class="card">
+
+                <p class="eyebrow">USER</p>
+
+                <h3>${escapeHtml(user.name)}</h3>
+
+                <p><strong>ID:</strong> ${user.id}</p>
+                <p><strong>Email:</strong> ${escapeHtml(user.email)}</p>
+                <p><strong>Phone:</strong> ${escapeHtml(user.phone)}</p>
+
+                <div class="card-actions">
+                    <button type="button" onclick="selectUser(${user.id})">
+                        Use This User
+                    </button>
+                </div>
+
+            </div>
+        `).join("");
+
+    } catch (error) {
+        console.error("USER LOAD ERROR:", error);
+        container.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`;
+    }
+}
+
+
+function selectUser(id) {
+    USER_ID = id;
+
+    const message = document.getElementById("userMessage");
+
+    if (message) {
+        message.textContent =
+            `User ${id} selected. New reports will be created for this user.`;
+    }
+}
+
+
 function populateLostPetDropdown() {
     const select = document.getElementById("lostPetSelect");
-
-    if (!select) {
-        return;
-    }
+    if (!select) return;
 
     const activeLostPets = allReports.filter(report =>
         report.reportType === "lost" && report.status === "ACTIVE"
@@ -230,14 +326,13 @@ function populateLostPetDropdown() {
 
     activeLostPets.forEach(report => {
         const option = document.createElement("option");
-
         option.value = report.id;
         option.textContent =
             `${report.species} - ${report.breed} - ${report.color} - ${report.locality}`;
-
         select.appendChild(option);
     });
 }
+
 
 async function findMatches() {
     const select = document.getElementById("lostPetSelect");
@@ -250,12 +345,11 @@ async function findMatches() {
     await getMatches(select.value);
 }
 
+
 async function findMatchesForReport(lostPetId) {
     const select = document.getElementById("lostPetSelect");
 
-    if (select) {
-        select.value = String(lostPetId);
-    }
+    if (select) select.value = String(lostPetId);
 
     await getMatches(lostPetId);
 
@@ -266,12 +360,10 @@ async function findMatchesForReport(lostPetId) {
     }
 }
 
+
 async function getMatches(lostPetId) {
     const container = document.getElementById("matchesContainer");
-
-    if (!container) {
-        return;
-    }
+    if (!container) return;
 
     container.innerHTML = `<p class="loading">Finding possible matches...</p>`;
 
@@ -279,11 +371,7 @@ async function getMatches(lostPetId) {
         const response = await fetch(`${API}/matches/${lostPetId}`);
         const result = await readResponse(response);
 
-        console.log("MATCH RESPONSE:", result);
-
-        if (!response.ok) {
-            throw new Error(getErrorMessage(result));
-        }
+        if (!response.ok) throw new Error(getErrorMessage(result));
 
         displayMatches(result);
 
@@ -293,12 +381,10 @@ async function getMatches(lostPetId) {
     }
 }
 
+
 function displayMatches(matches) {
     const container = document.getElementById("matchesContainer");
-
-    if (!container) {
-        return;
-    }
+    if (!container) return;
 
     if (!Array.isArray(matches) || matches.length === 0) {
         container.innerHTML = `<p class="loading">No possible matches found.</p>`;
@@ -307,8 +393,11 @@ function displayMatches(matches) {
 
     container.innerHTML = matches.map(report => `
         <div class="card found">
+
             <p class="eyebrow">MATCH FOUND</p>
+
             <h3>${escapeHtml(report.breed)}</h3>
+
             <p><strong>Species:</strong> ${escapeHtml(report.species)}</p>
             <p><strong>Color:</strong> ${escapeHtml(report.color)}</p>
             <p><strong>Locality:</strong> ${escapeHtml(report.locality)}</p>
@@ -316,11 +405,15 @@ function displayMatches(matches) {
             <p><strong>Status:</strong> ${escapeHtml(report.status)}</p>
 
             <div class="card-actions">
-                <button type="button" onclick="viewReport('found', ${report.id})">View</button>
+                <button type="button" onclick="viewReport('found', ${report.id})">
+                    View
+                </button>
             </div>
+
         </div>
     `).join("");
 }
+
 
 async function viewReport(type, id) {
     try {
@@ -331,9 +424,7 @@ async function viewReport(type, id) {
         const response = await fetch(endpoint);
         const report = await readResponse(response);
 
-        if (!response.ok) {
-            throw new Error(getErrorMessage(report));
-        }
+        if (!response.ok) throw new Error(getErrorMessage(report));
 
         const location = type === "lost"
             ? report.lastSeenLocation
@@ -344,7 +435,9 @@ async function viewReport(type, id) {
 
         content.innerHTML = `
             <p class="eyebrow">${type === "lost" ? "LOST PET" : "FOUND ANIMAL"}</p>
+
             <h2>${escapeHtml(report.breed)}</h2>
+
             <p><strong>Species:</strong> ${escapeHtml(report.species)}</p>
             <p><strong>Breed:</strong> ${escapeHtml(report.breed)}</p>
             <p><strong>Color:</strong> ${escapeHtml(report.color)}</p>
@@ -362,18 +455,128 @@ async function viewReport(type, id) {
     }
 }
 
-function closeModal() {
-    const modal = document.getElementById("modal");
 
-    if (modal) {
-        modal.classList.add("hidden");
+async function editReport(type, id) {
+    try {
+        const endpoint = type === "lost"
+            ? `${API}/lost-pets/${id}`
+            : `${API}/found-animals/${id}`;
+
+        const response = await fetch(endpoint);
+        const report = await readResponse(response);
+
+        if (!response.ok) throw new Error(getErrorMessage(report));
+
+        const content = document.getElementById("modalContent");
+
+        content.innerHTML = `
+            <p class="eyebrow">
+                EDIT ${type === "lost" ? "LOST PET" : "FOUND ANIMAL"}
+            </p>
+
+            <h2>Update Report</h2>
+
+            <form id="editReportForm">
+
+                <div class="grid">
+
+                    <div>
+                        <label>Species</label>
+                        <input id="editSpecies" value="${escapeHtml(report.species)}" required>
+                    </div>
+
+                    <div>
+                        <label>Breed</label>
+                        <input id="editBreed" value="${escapeHtml(report.breed)}" required>
+                    </div>
+
+                    <div>
+                        <label>Color</label>
+                        <input id="editColor" value="${escapeHtml(report.color)}" required>
+                    </div>
+
+                    <div>
+                        <label>Locality</label>
+                        <input id="editLocality" value="${escapeHtml(report.locality)}" required>
+                    </div>
+
+                    <div class="full">
+                        <label>
+                            ${type === "lost" ? "Last Seen Location" : "Found Location"}
+                        </label>
+                        <input id="editLocation"
+                            value="${escapeHtml(type === "lost" ? report.lastSeenLocation : report.foundLocation)}"
+                            required>
+                    </div>
+
+                </div>
+
+                <button class="submit" type="submit">Save Changes</button>
+
+                <p id="editMessage" class="message"></p>
+            </form>
+        `;
+
+        document
+            .getElementById("editReportForm")
+            .addEventListener("submit", async function (event) {
+                event.preventDefault();
+                await updateReport(type, id);
+            });
+
+        document.getElementById("modal").classList.remove("hidden");
+
+    } catch (error) {
+        console.error("EDIT ERROR:", error);
+        alert(error.message);
     }
 }
 
-async function resolveReport(type, id) {
-    if (!confirm("Mark this report as resolved?")) {
-        return;
+
+async function updateReport(type, id) {
+    const data = {
+        species: document.getElementById("editSpecies").value.trim(),
+        breed: document.getElementById("editBreed").value.trim(),
+        color: document.getElementById("editColor").value.trim(),
+        locality: document.getElementById("editLocality").value.trim()
+    };
+
+    if (type === "lost") {
+        data.lastSeenLocation = document.getElementById("editLocation").value.trim();
+    } else {
+        data.foundLocation = document.getElementById("editLocation").value.trim();
     }
+
+    const endpoint = type === "lost"
+        ? `${API}/lost-pets/${id}`
+        : `${API}/found-animals/${id}`;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const result = await readResponse(response);
+
+        if (!response.ok) throw new Error(getErrorMessage(result));
+
+        alert("Report updated successfully.");
+        closeModal();
+        await loadReports();
+
+    } catch (error) {
+        console.error("UPDATE ERROR:", error);
+
+        const message = document.getElementById("editMessage");
+        if (message) message.textContent = error.message;
+    }
+}
+
+
+async function resolveReport(type, id) {
+    if (!confirm("Mark this report as resolved?")) return;
 
     const endpoint = type === "lost"
         ? `${API}/lost-pets/${id}/resolve`
@@ -383,11 +586,7 @@ async function resolveReport(type, id) {
         const response = await fetch(endpoint, { method: "PUT" });
         const result = await readResponse(response);
 
-        console.log("RESOLVE RESPONSE:", result);
-
-        if (!response.ok) {
-            throw new Error(getErrorMessage(result));
-        }
+        if (!response.ok) throw new Error(getErrorMessage(result));
 
         alert(
             type === "lost"
@@ -403,28 +602,25 @@ async function resolveReport(type, id) {
     }
 }
 
+
 async function deleteReport(type, id) {
-    if (!confirm("Are you sure you want to delete this report?")) {
-        return;
-    }
+    if (!confirm("Are you sure you want to delete this report?")) return;
 
     const endpoint = type === "lost"
         ? `${API}/lost-pets/${id}`
         : `${API}/found-animals/${id}`;
 
-    console.log("DELETE:", endpoint);
-
     try {
         const response = await fetch(endpoint, { method: "DELETE" });
         const result = await readResponse(response);
 
-        console.log("DELETE RESPONSE:", result);
+        if (!response.ok) throw new Error(getErrorMessage(result));
 
-        if (!response.ok) {
-            throw new Error(getErrorMessage(result));
-        }
-
-        alert(typeof result === "string" ? result : "Report deleted successfully.");
+        alert(
+            typeof result === "string"
+                ? result
+                : "Report deleted successfully."
+        );
 
         await loadReports();
 
@@ -433,6 +629,7 @@ async function deleteReport(type, id) {
         alert(error.message);
     }
 }
+
 
 function updateCounts() {
     const lostCount = allReports.filter(report =>
@@ -446,31 +643,29 @@ function updateCounts() {
     const lostElement = document.getElementById("lostCount");
     const foundElement = document.getElementById("foundCount");
 
-    if (lostElement) {
-        lostElement.textContent = lostCount;
-    }
-
-    if (foundElement) {
-        foundElement.textContent = foundCount;
-    }
+    if (lostElement) lostElement.textContent = lostCount;
+    if (foundElement) foundElement.textContent = foundCount;
 }
+
 
 function goTo(sectionId) {
     const section = document.getElementById(sectionId);
-
-    if (!section) {
-        return;
-    }
+    if (!section) return;
 
     section.scrollIntoView({ behavior: "smooth" });
 }
 
+
+function closeModal() {
+    const modal = document.getElementById("modal");
+    if (modal) modal.classList.add("hidden");
+}
+
+
 async function readResponse(response) {
     const text = await response.text();
 
-    if (!text) {
-        return {};
-    }
+    if (!text) return {};
 
     try {
         return JSON.parse(text);
@@ -479,38 +674,29 @@ async function readResponse(response) {
     }
 }
 
-function getErrorMessage(result) {
-    if (typeof result === "string") {
-        return result;
-    }
 
-    if (result && result.error) {
-        return result.error;
-    }
+function getErrorMessage(result) {
+    if (typeof result === "string") return result;
+
+    if (result && result.error) return result.error;
 
     if (result && typeof result === "object") {
         const values = Object.values(result);
-
-        if (values.length > 0) {
-            return values.join("\n");
-        }
+        if (values.length > 0) return values.join("\n");
     }
 
     return "Something went wrong.";
 }
 
-function formatDate(date) {
-    if (!date) {
-        return "Not available";
-    }
 
+function formatDate(date) {
+    if (!date) return "Not available";
     return new Date(date).toLocaleString();
 }
 
+
 function escapeHtml(value) {
-    if (value === null || value === undefined) {
-        return "";
-    }
+    if (value === null || value === undefined) return "";
 
     return String(value)
         .replace(/&/g, "&amp;")

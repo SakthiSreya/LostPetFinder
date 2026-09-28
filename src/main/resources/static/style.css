@@ -310,6 +310,8 @@ h2 {
 }
 
 .card {
+    min-width: 0;
+    overflow-wrap: anywhere;
     border: 1px solid var(--border);
     border-top: 5px solid var(--teal);
     border-radius: var(--radius);
@@ -438,6 +440,23 @@ h2 {
 
 .form-title h2 {
     margin-bottom: 6px;
+}
+
+.pet-art {
+    display: block;
+    width: 200px;
+    max-width: 60%;
+    margin-top: 28px;
+}
+
+.existing-users {
+    grid-column: 1 / -1;
+}
+
+.existing-users h3 {
+    color: var(--ink);
+    font-size: 22px;
+    margin-bottom: 14px;
 }
 
 form {
@@ -585,6 +604,10 @@ footer p {
     .form-section {
         grid-template-columns: 1fr;
         gap: 20px;
+    }
+
+    .pet-art {
+        display: none;
     }
 
     nav {

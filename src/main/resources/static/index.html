@@ -7,180 +7,253 @@
     <title>LostPetFinder</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header class="navbar">
-    <div class="logo">LostPet<span>Finder</span></div>
-    <nav>
-        <a href="#home">Home</a>
-        <a href="#reports">Find Reports</a>
-        <a href="#matches">Matches</a>
-        <a href="#lost">Report Lost</a>
-        <a href="#found">Report Found</a>
-    </nav>
-</header>
+    <header class="navbar">
+        <div class="logo">LostPet<span>Finder</span></div>
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#reports">Find Reports</a>
+            <a href="#matches">Matches</a>
+            <a href="#lost">Report Lost</a>
+            <a href="#found">Report Found</a>
+            <a href="#users">Users</a>
+        </nav>
+    </header>
 
-<section class="hero" id="home">
-    <div class="hero-content">
-        <p class="eyebrow">LOST & FOUND PET COMMUNITY</p>
-        <h1>Help them find<br>their way home.</h1>
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <p class="eyebrow">LOST & FOUND PET COMMUNITY</p>
+            <h1>Help them find<br>their way home.</h1>
+            <p>
+                A simple platform to report lost pets,
+                found animals and discover possible matches
+                within your locality.
+            </p>
+            <div class="hero-buttons">
+                <button class="primary" onclick="goTo('lost')">Report Lost Pet</button>
+                <button class="secondary" onclick="goTo('found')">Report Found Animal</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <p><span class="dot"></span>ACTIVE REPORTS</p>
+            <div class="stat">
+                <strong id="lostCount">0</strong>
+                <span>Lost Pets</span>
+            </div>
+            <div class="stat">
+                <strong id="foundCount">0</strong>
+                <span>Found Animals</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="reports">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">FIND A REPORT</p>
+                <h2>Search nearby reports</h2>
+                <p>Find lost pets and found animals reported in your locality.</p>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="locality" placeholder="Enter locality, e.g. Chennai">
+            <button class="primary" onclick="searchReports()">Search</button>
+            <button class="clear" onclick="loadReports()">Clear</button>
+        </div>
+
+        <div class="filters">
+            <button class="filter active" onclick="filterReports('all', this)">All</button>
+            <button class="filter" onclick="filterReports('lost', this)">Lost Pets</button>
+            <button class="filter" onclick="filterReports('found', this)">Found Animals</button>
+        </div>
+
+        <div id="reportsContainer" class="cards">
+            <p class="loading">Loading reports...</p>
+        </div>
+    </section>
+
+    <section class="section matches" id="matches">
+        <p class="eyebrow">POSSIBLE MATCHES</p>
+        <h2>Find a possible match</h2>
         <p>
-            A simple platform to report lost pets,
-            found animals and discover possible matches
-            within your locality.
+            Select a lost pet to find active found-animal
+            reports matching its species and locality.
         </p>
-        <div class="hero-buttons">
-            <button class="primary" onclick="goTo('lost')">Report Lost Pet</button>
-            <button class="secondary" onclick="goTo('found')">Report Found Animal</button>
+
+        <div class="match-box">
+            <select id="lostPetSelect">
+                <option value="">Select a lost pet</option>
+            </select>
+            <button class="primary" onclick="findMatches()">Find Matches</button>
+        </div>
+
+        <div id="matchesContainer" class="cards"></div>
+    </section>
+
+    <section class="form-section" id="lost">
+        <div class="form-title">
+            <p class="eyebrow">LOST PET</p>
+            <h2>Report a lost pet</h2>
+            <p>Provide the details of the missing pet so others can help identify it.</p>
+
+            <svg class="pet-art" viewBox="0 0 200 200" aria-hidden="true">
+                <circle cx="100" cy="100" r="96" fill="#e0f2ef" />
+                <ellipse cx="52" cy="90" rx="20" ry="38" fill="#a8672f" transform="rotate(15 52 90)" />
+                <ellipse cx="148" cy="90" rx="20" ry="38" fill="#a8672f" transform="rotate(-15 148 90)" />
+                <ellipse cx="100" cy="105" rx="52" ry="55" fill="#d99a5b" />
+                <ellipse cx="100" cy="128" rx="28" ry="22" fill="#f6e1c3" />
+                <circle cx="80" cy="95" r="6" fill="#10232e" />
+                <circle cx="120" cy="95" r="6" fill="#10232e" />
+                <ellipse cx="100" cy="118" rx="9" ry="6" fill="#10232e" />
+                <path d="M100 124v8M90 134q10 8 20 0" stroke="#10232e" stroke-width="3" fill="none"
+                    stroke-linecap="round" />
+            </svg>
+        </div>
+
+        <form id="lostForm">
+            <div class="grid">
+                <div>
+                    <label for="lostSpecies">Species</label>
+                    <input id="lostSpecies" placeholder="Dog" required>
+                </div>
+                <div>
+                    <label for="lostBreed">Breed</label>
+                    <input id="lostBreed" placeholder="Labrador" required>
+                </div>
+                <div>
+                    <label for="lostColor">Color</label>
+                    <input id="lostColor" placeholder="Brown" required>
+                </div>
+                <div>
+                    <label for="lostLocality">Locality</label>
+                    <input id="lostLocality" placeholder="Chennai" required>
+                </div>
+                <div class="full">
+                    <label for="lastSeenLocation">Last Seen Location</label>
+                    <input id="lastSeenLocation" placeholder="Anna Nagar" required>
+                </div>
+            </div>
+
+            <button class="submit" type="submit">Submit Lost Pet Report</button>
+            <p id="lostMessage" class="message"></p>
+        </form>
+    </section>
+
+    <section class="form-section white" id="found">
+        <div class="form-title">
+            <p class="eyebrow">FOUND ANIMAL</p>
+            <h2>Report a found animal</h2>
+            <p>Report an animal you found so its owner can potentially locate it.</p>
+
+            <svg class="pet-art" viewBox="0 0 200 200" aria-hidden="true">
+                <circle cx="100" cy="100" r="96" fill="#ffffff" />
+                <polygon points="50,70 58,25 95,55" fill="#8a8f98" />
+                <polygon points="150,70 142,25 105,55" fill="#8a8f98" />
+                <ellipse cx="100" cy="108" rx="55" ry="50" fill="#a9aeb7" />
+                <ellipse cx="80" cy="100" rx="7" ry="9" fill="#10232e" />
+                <ellipse cx="120" cy="100" rx="7" ry="9" fill="#10232e" />
+                <polygon points="93,118 107,118 100,127" fill="#e58a9b" />
+                <path d="M100 127q-8 10-16 4M100 127q8 10 16 4M40 115h25M40 128h25M160 115h-25M160 128h-25"
+                    stroke="#10232e" stroke-width="3" fill="none" stroke-linecap="round" />
+            </svg>
+        </div>
+
+        <form id="foundForm">
+            <div class="grid">
+                <div>
+                    <label for="foundSpecies">Species</label>
+                    <input id="foundSpecies" placeholder="Dog" required>
+                </div>
+                <div>
+                    <label for="foundBreed">Breed</label>
+                    <input id="foundBreed" placeholder="Labrador" required>
+                </div>
+                <div>
+                    <label for="foundColor">Color</label>
+                    <input id="foundColor" placeholder="Brown" required>
+                </div>
+                <div>
+                    <label for="foundLocality">Locality</label>
+                    <input id="foundLocality" placeholder="Chennai" required>
+                </div>
+                <div class="full">
+                    <label for="foundLocation">Found Location</label>
+                    <input id="foundLocation" placeholder="Anna Nagar" required>
+                </div>
+            </div>
+
+            <button class="submit" type="submit">Submit Found Animal Report</button>
+            <p id="foundMessage" class="message"></p>
+        </form>
+    </section>
+
+    <section class="form-section" id="users">
+        <div class="form-title">
+            <p class="eyebrow">USER MANAGEMENT</p>
+            <h2>Create / Find User</h2>
+            <p>Create a user or view existing users.</p>
+
+            <svg class="pet-art" viewBox="0 0 200 200" aria-hidden="true">
+                <circle cx="100" cy="100" r="96" fill="#e0f2ef" />
+                <ellipse cx="100" cy="128" rx="34" ry="28" fill="#0f766e" />
+                <ellipse cx="58" cy="92" rx="13" ry="18" fill="#0f766e" />
+                <ellipse cx="86" cy="68" rx="13" ry="18" fill="#0f766e" />
+                <ellipse cx="114" cy="68" rx="13" ry="18" fill="#0f766e" />
+                <ellipse cx="142" cy="92" rx="13" ry="18" fill="#0f766e" />
+            </svg>
+        </div>
+
+        <form id="userForm">
+            <div class="grid">
+                <div>
+                    <label for="userName">Name</label>
+                    <input id="userName" placeholder="John Doe" required>
+                </div>
+
+                <div>
+                    <label for="userEmail">Email</label>
+                    <input id="userEmail" type="email" placeholder="john@example.com" required>
+                </div>
+
+                <div class="full">
+                    <label for="userPhone">Phone</label>
+                    <input id="userPhone" placeholder="9876543210" required>
+                </div>
+            </div>
+
+            <button class="submit" type="submit">Create User</button>
+            <p id="userMessage" class="message"></p>
+        </form>
+
+        <div class="existing-users">
+            <h3>Existing Users</h3>
+            <div id="usersContainer" class="cards">
+                <p class="loading">Loading users...</p>
+            </div>
+        </div>
+    </section>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-box">
+            <button class="close" onclick="closeModal()">×</button>
+            <div id="modalContent"></div>
         </div>
     </div>
 
-    <div class="stats">
-        <p><span class="dot"></span>ACTIVE REPORTS</p>
-        <div class="stat">
-            <strong id="lostCount">0</strong>
-            <span>Lost Pets</span>
-        </div>
-        <div class="stat">
-            <strong id="foundCount">0</strong>
-            <span>Found Animals</span>
-        </div>
-    </div>
-</section>
+    <footer>
+        <strong>LostPet<span>Finder</span></strong>
+        <p>Connecting lost pets with the people looking for them.</p>
+    </footer>
 
-<section class="section" id="reports">
-    <div class="section-heading">
-        <div>
-            <p class="eyebrow">FIND A REPORT</p>
-            <h2>Search nearby reports</h2>
-            <p>Find lost pets and found animals reported in your locality.</p>
-        </div>
-    </div>
-
-    <div class="search-box">
-        <input type="text" id="locality" placeholder="Enter locality, e.g. Chennai">
-        <button class="primary" onclick="searchReports()">Search</button>
-        <button class="clear" onclick="loadReports()">Clear</button>
-    </div>
-
-    <div class="filters">
-        <button class="filter active" onclick="filterReports('all', this)">All</button>
-        <button class="filter" onclick="filterReports('lost', this)">Lost Pets</button>
-        <button class="filter" onclick="filterReports('found', this)">Found Animals</button>
-    </div>
-
-    <div id="reportsContainer" class="cards">
-        <p class="loading">Loading reports...</p>
-    </div>
-</section>
-
-<section class="section matches" id="matches">
-    <p class="eyebrow">POSSIBLE MATCHES</p>
-    <h2>Find a possible match</h2>
-    <p>
-        Select a lost pet to find active found-animal
-        reports matching its species and locality.
-    </p>
-
-    <div class="match-box">
-        <select id="lostPetSelect">
-            <option value="">Select a lost pet</option>
-        </select>
-        <button class="primary" onclick="findMatches()">Find Matches</button>
-    </div>
-
-    <div id="matchesContainer" class="cards"></div>
-</section>
-
-<section class="form-section" id="lost">
-    <div class="form-title">
-        <p class="eyebrow">LOST PET</p>
-        <h2>Report a lost pet</h2>
-        <p>Provide the details of the missing pet so others can help identify it.</p>
-    </div>
-
-    <form id="lostForm">
-        <div class="grid">
-            <div>
-                <label for="lostSpecies">Species</label>
-                <input id="lostSpecies" placeholder="Dog" required>
-            </div>
-            <div>
-                <label for="lostBreed">Breed</label>
-                <input id="lostBreed" placeholder="Labrador" required>
-            </div>
-            <div>
-                <label for="lostColor">Color</label>
-                <input id="lostColor" placeholder="Brown" required>
-            </div>
-            <div>
-                <label for="lostLocality">Locality</label>
-                <input id="lostLocality" placeholder="Chennai" required>
-            </div>
-            <div class="full">
-                <label for="lastSeenLocation">Last Seen Location</label>
-                <input id="lastSeenLocation" placeholder="Anna Nagar" required>
-            </div>
-        </div>
-
-        <button class="submit" type="submit">Submit Lost Pet Report</button>
-        <p id="lostMessage" class="message"></p>
-    </form>
-</section>
-
-<section class="form-section white" id="found">
-    <div class="form-title">
-        <p class="eyebrow">FOUND ANIMAL</p>
-        <h2>Report a found animal</h2>
-        <p>Report an animal you found so its owner can potentially locate it.</p>
-    </div>
-
-    <form id="foundForm">
-        <div class="grid">
-            <div>
-                <label for="foundSpecies">Species</label>
-                <input id="foundSpecies" placeholder="Dog" required>
-            </div>
-            <div>
-                <label for="foundBreed">Breed</label>
-                <input id="foundBreed" placeholder="Labrador" required>
-            </div>
-            <div>
-                <label for="foundColor">Color</label>
-                <input id="foundColor" placeholder="Brown" required>
-            </div>
-            <div>
-                <label for="foundLocality">Locality</label>
-                <input id="foundLocality" placeholder="Chennai" required>
-            </div>
-            <div class="full">
-                <label for="foundLocation">Found Location</label>
-                <input id="foundLocation" placeholder="Anna Nagar" required>
-            </div>
-        </div>
-
-        <button class="submit" type="submit">Submit Found Animal Report</button>
-        <p id="foundMessage" class="message"></p>
-    </form>
-</section>
-
-<div id="modal" class="modal hidden">
-    <div class="modal-box">
-        <button class="close" onclick="closeModal()">×</button>
-        <div id="modalContent"></div>
-    </div>
-</div>
-
-<footer>
-    <strong>LostPet<span>Finder</span></strong>
-    <p>Connecting lost pets with the people looking for them.</p>
-</footer>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
 
